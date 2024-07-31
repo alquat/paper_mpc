@@ -1,0 +1,58 @@
+%\documentclass[onecolumn]{IEEEtranTIE}
+\documentclass[journal]{IEEEtranTIE}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{picinpar}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{flushend}
+\usepackage[latin1]{inputenc}
+\usepackage{colortbl}
+\usepackage{soul}
+\usepackage{multirow}
+\usepackage{pifont}
+\usepackage{color}
+\usepackage{alltt}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumerate}
+\usepackage{siunitx}
+\usepackage{breakurl}
+\usepackage{epstopdf}
+\usepackage{pbox}
+
+\begin{document}
+\title{	Preparation of Papers for IEEE Trans on Industrial Electronics \\ (Apr. 2021)}
+
+\author{
+	\vskip 1em
+	
+	First A. Author1, \emph{Student Membership},
+	Second B. Author2, \emph{Membership},
+	\\ and Third C. Author3, \emph{Membership}
+
+	\thanks{
+	
+		Manuscript received Month xx, 2xxx; revised Month xx, xxxx; accepted Month x, xxxx.
+		This work was supported in part by the xxx Department of xxx under Grant  (sponsor and financial support acknowledgment goes here).
+		
+		(Authors' names and affiliation) First A. Author1 and Second B. Author2 are with the xxx Department, University of xxx, City, Zip code, Country, on leave from the National Institute for xxx, City, Zip code, Country (e-mail: author@domain.com). 
+		
+		Third C. Author3 is with the National Institute of xxx, City, Zip code, Country (corresponding author to provide phone: xxx-xxx-xxxx; fax: xxx-xxx-xxxx; e-mail: author@ domain.gov).
+	}
+}
+
+\maketitle
+	
+\input{sections/abstract}
+
+%\input{sections/Introduction}
+
+
+\subsection{References}
+
+This is the paper I am citing\cite{quattrociocchi2023energy}
+
+\bibliographystyle{bibliography/IEEEtranTIE}
+\bibliography{bibliography/IEEEabrv,bibliography/BIB_xx-TIE-xxxx}\ %IEEEabrv instead of IEEEfull
+
+\end{document}
