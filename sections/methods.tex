@@ -1,68 +1,133 @@
-\section{SSA Decompsition}
- 
-Let $N > 2$. Consider a real-valued time series: 
+\section{System Identification}
+\subsection{ARX Model}
+	We have chosen to represent the system in \textit{discrete time},
+	\begin{align}
+		y_t &+ a_1 y_{t-1} + \cdots + a_n y_{t-p} = b_1 u_{t-1} + \cdots + b_q u_{t-q}
+	\end{align}
 
-\begin{align}
-	F = (f_0,f_1, \dots, f_{N-1})
-\end{align}
+	\begin{align}
+		\theta = \begin{bmatrix}
+		a_1, \ldots, a_p, b_1, \ldots, b_q
+		\end{bmatrix}^T
+	\end{align} 
 
-\subsection{Embeddings}
-This step involve transforming the time series in a multi dimentioned lagged vectors.
-Let $N$ be an integer values representing the window length, where $1\leq L \leq N$
-the embeddings precedure, such that $K = N-l-1$ lagged vectors. 
-\begin{align}
-	\nonumber x_i = (f_{i-1}, \dots , f_{i +L -2})^T \quad 1\leq i \leq k
-\end{align} 
+	\begin{align}
+		\varphi(t) = \begin{bmatrix}
+		-y_{t-1} \cdots - y_{t-p}, u_{t-1} \cdots u_{t-q}
+		\end{bmatrix}^T
+	\end{align}
 
-Therefore the trajectory matrix can be defined as follows:
-\begin{align}
-X = (x_{ij})_{i,j}^{L,K} = \begin{bmatrix} 
-    f_0 & f_1 & f_2 & \dots & f_{k-1} \\
-	f_1 & f_2 & f_3 & \dots & f_k \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    f_{L-1} & f_L & f_{L+1} & \dots & f_{N-1}
-    \end{bmatrix}
-\end{align}
+	\begin{align}
+		y_t = \varphi^T_t \theta_t \quad  \forall t \in (1, N)
+	\end{align}
 
-The terms $X_{(i,j)} = f_{i+j-2}$. Therefore, the matrix X is the Henkel matrix
-of the time series F.  
-\subsection{SVD: Singular Value Decomposition}
-After creating the Henkel matrix, i.e. a multi dimention representation of the univariate time series, 
-SSA employes singular value decomposition in order to break down the matrix X into smaller blocks. 
-Thus decomposting the Henkel matrix $X$ as follows: 
-\begin{align}
-	X = U\Sigma V^T
-\end{align}
-where $U$ is an $L \times L$ unitary ortonormal matrix, representing the set of left singular vectors,  
- $\Sigma$ is $LxK$ rectangular matrix cintaining the L singular values of the matrix X,
-ordered in magnitude ($\lambda_1 \geq \lambda_2 \geq \lambda_3 \geq\dots \geq \lambda_N $), and $V$ a $K \times K$
-unitary matrix containing the ortonormal set of right singular vectors of X. 
-The SVD of the singular value can be rewritten as:
 
-\begin{align}\label{eq:svd_i}
-	X = \sum_{i=0}^{d-1} \sigma_i U_i V_{i}^T = \sum_{i=0}^{d-1}X_i
-\end{align}
 
-Eq.\ref{eq:svd_i} shows how the $X_i$ is the i-th elementary block of the matrix X given by the eigentriple $(U_i, \sigma_i, V_i)$.
-Where the values of $\sigma$ determines the magnitude of the i-th contribution of the block $X_i$.
-d represents the dimensionality of the of the Henkel matrix. This formulation extend the well-know decomposition 
-framework of a time series in trend, seasonality and noise. As results of this decomposition, the initial time series
-can be seen as the sum of multiple components ordered by magnitude (trend, multiple seasonality, exogenous and noise).
-If we sum up all the d sub-blocks, the matrix is entirely reconstructed, while considering only the first r-th sub.blocks would filter the time series. 
+	For a given system we can collect inputs and outputs over a time
+	interval $t$
 
-\subsection{Reconstruction}
-To extract a time series from the elementary matrices, we'll employ \textbf{diagonal averaging}, which defines the values of the reconstructed time series \( F^{(j)} \) as averages of the corresponding anti-diagonals of the matrices \( X^{(j)} \). Formally, this is represented by introducing the \textbf{Hankelisation} operator, \( \hat{H} \), that acts on the \( L \times K \) matrix \( X^{(j)} \) to give a Hankel matrix \( \hat{X}^{(j)} \), that is,
-\[
-\hat{X}^{(j)} = \hat{H}X^{(j)}
-\]
-The element \( \hat{x}_{m,n} \) in \( \hat{X} \), for \( s = m + n \), is given by
-\[
-\hat{x}_{m,n} = 
-\begin{cases} 
-\frac{1}{s+1} \sum_{l=0}^{s} x_{l,s-l} & \text{for } 0 \leq s \leq L - 1 \\
-\frac{1}{L} \sum_{l=0}^{L-1} x_{l,s-l} & \text{for } L \leq s \leq K - 1 \\
-\frac{1}{K+L-s-1} \sum_{l=s-K+1}^{L} x_{l,s-l} & \text{for } K \leq s \leq K + L - 2
-\end{cases}
-\]
+	\begin{align}
+		\emph{Z}^N = \big \{u(t_0), y(t_0), \cdots, u(N), y(n)\big \}
+	\end{align}
 
-\subsection{Forecast using SSA }
+
+	\begin{align}
+		\hat{\theta} = \arg\min_{x} \emph{V}_N(\theta) + \lambda(\theta - \theta^*)R(\theta - \theta^*)
+	\end{align}
+
+	The ARX(p, q) model is given by:
+	\begin{align}
+	y_t = \sum_{i=1}^p \varphi_i y_{t-i} + \sum_{j=1}^q \beta_j x_{t-j} + \epsilon_t
+	\end{align}
+
+
+\subsection{Piecewise Linear function}
+
+	\begin{algorithm}
+		\caption{Grouping Time Series Data by Bin Medians}
+		\begin{algorithmic}[1]
+		\REQUIRE Time series data \( y = \{y_1, y_2, \ldots, y_T\} \), excitation data \( u = \{u_1, u_2, \ldots, u_T\} \), bin size \( n \)
+		\ENSURE Grouped data by bin medians
+		
+		\STATE Divide the time series \( y \) into bins of size \( n \)
+		\FOR{$i = 1$ to $\left\lceil \frac{T}{n} \right\rceil$}
+			\STATE $B_i \gets \{ y_{(i-1)n+1}, y_{(i-1)n+2}, \ldots, y_{\min(in, T)} \}$
+			\STATE Compute the median \( m_i \) of the bin \( B_i \)
+		\ENDFOR
+		
+		\STATE Group the data in \( y \) by their corresponding bin medians \( m_i \)
+		
+		\end{algorithmic}
+		\end{algorithm}
+
+
+\section{Inflow Estimation}
+
+	The considered wastewater pumping station, only the outflow and the height are measured, 
+	while the inflow is not measured or estimated. Therefore, in order to estimate the inflow of the tank, 
+	we implemented an observer by using the tank equation where the instantaneous rate of change of the height $dh$ is proportional 
+	to the difference between the inflow and the outflow of the tank, scaled by the area of the tank, as pointed Eq.\ref{eq:height_eq}.
+	\begin{align}
+	h_t = h_0 + \frac{T_s}{A}(Q_{in,t} - Q_{out,t}) + v_t \label{eq:height_eq}
+	\end{align}
+
+	\noindent where \( A \), the cross-sectional area of the tank, $T_s$ is the sampling time of the measurements,
+	$Q_{in,t}$ and $Q_{out,t}$ are the measured inflow and outflow respectively, and $v_t$ is the measurement noise. 
+
+	By defining the the inflow  \( Q_{in,t} \) any time \( t \), the hidden state the 
+	Eq.\ref{eq:height_eq}, \( w_t \) the process noise, \( Q \) is the covariance of the process noise, and \( R \) is the measurement noise covariance.
+	\[
+	Q_{in, t+1} = Q_{in, t} + w_t
+	\]
+	
+	\noindent The states can be estimated by means of the Kalman filter, at any given time \( t \)
+	\subsubsection*{Prediction Step}
+	\begin{align*}
+	\hat{Q}_{in, t+1|t} &= \hat{Q}_{in,t|t} \\
+	P_{t+1|t} &= P_{t|t} + Q
+	\end{align*}
+	where \( Q \) is the covariance of the process noise.
+
+	\subsubsection*{Update Step}
+	Compute the Kalman Gain and update the estimate with the measurement:
+
+	\begin{align*}
+		\Delta h_{t+1} &= h_{t+1} - z_{h,t+1} \\
+		\Delta Q_{t+1} &= \hat{Q}_{in,t+1|t} - z_{Q_{out},t+1} \\
+		\hat{Q}_{in,t+1|t+1} &= \hat{Q}_{in,t+1|t} + K_{t+1} \left(\frac{A}{T_s}\Delta h_{t+1} - \Delta Q_{t+1} \right)
+		\end{align*}
+	
+\
+
+
+\section{Inflow Forecast}
+
+\section{Hierarchical Model Predictive Control}
+	\subsection{Higher-Level MPC}
+		\begin{subequations}\label{P0:higher_mpc}
+			\begin{align}
+				\underset{\zeta, }{\text{min}}& \sum_{t=1}^{T} \Gamma \left\lVert E \right\rVert^{2}_{t} + \Lambda_t^T \sigma_t   \label{P0:1} \\
+				&\hspace{-1em} \text{s.t.}  \quad \quad \forall \sigma_t \geq 0 \label{P0:2} \\
+				& \qquad \zeta_{t} = \sum_{j=1}^3 \zeta_{t-1} \label{P0:3}  \\
+				& \qquad Q_{in,t} \leq 0\label{P0:4} \\
+				& \qquad h_{min}\leq h_{t} \leq h_{max}\label{P0:5}\\
+				& \qquad E_{min}\leq E_{t} \leq E_{max}\label{P0:6}
+		\end{align}
+		\end{subequations}
+	
+
+\subsection{Lower-Level MPC}
+	\begin{subequations}\label{P2:FinalModel}
+		\begin{align}
+			\underset{\omega, E, P, Q_{\text{out}}}{\text{min}}& \sum_{k=1}^{h} \mathcal{Q} \left\lVert h_k - h_r \right\rVert^2 + \mathcal{R} \left\lVert \omega_k \right\rVert^2 + \Gamma \left\lVert E \right\rVert^{2}_{k} + \Lambda_k^T \sigma_k  \label{P1:lower_mpc} \\
+			&\hspace{-1em} \text{s.t.}  \quad \quad \forall \sigma_k \geq 0, \; l \geq 0 \label{P1:1} \\
+			& \qquad Q_{\text{out}, k} = \sum_{j=1}^3 Q_{out_{j,k-1}} \label{P1:2} \\
+			& \qquad E_{k} = \sum_{j=1}^3 E_{k-l} \label{P1:3}  \\
+			& \qquad P_{k} = \sum_{j=1}^3 P_{k-l} \label{P1:4}  \\
+			& \qquad Q_{in,k} = \tilde{Q}_{in,k-1} \label{P1:5}  \\
+			& \qquad h_k = \frac{1}{A} \Big(\tilde{Q}_{in,k} - Q_{out,k}\Big) \label{P1:6} \\
+			& \qquad \omega_{l} - \sigma_{\omega} \leq \omega_k \leq \omega_{u} + \sigma_{\omega} \label{P1:7} \\
+			& \qquad P_{l} - \sigma_{P} \leq P_k \leq P_{u} + \sigma_{P} \label{P1:8} \\
+			& \qquad h_{r} - \sigma_{h_{r}} \leq h_k \leq h_{l} + \sigma_{h_{r}} \label{P1:9}
+	\end{align}
+	\end{subequations}

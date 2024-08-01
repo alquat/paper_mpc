@@ -1,0 +1,68 @@
+\section{SSA Decompsition}
+ 
+Let $N > 2$. Consider a real-valued time series: 
+
+\begin{align}
+	F = (f_0,f_1, \dots, f_{N-1})
+\end{align}
+
+\subsection{Embeddings}
+This step involve transforming the time series in a multi dimentioned lagged vectors.
+Let $N$ be an integer values representing the window length, where $1\leq L \leq N$
+the embeddings precedure, such that $K = N-l-1$ lagged vectors. 
+\begin{align}
+	\nonumber x_i = (f_{i-1}, \dots , f_{i +L -2})^T \quad 1\leq i \leq k
+\end{align} 
+
+Therefore the trajectory matrix can be defined as follows:
+\begin{align}
+X = (x_{ij})_{i,j}^{L,K} = \begin{bmatrix} 
+    f_0 & f_1 & f_2 & \dots & f_{k-1} \\
+	f_1 & f_2 & f_3 & \dots & f_k \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    f_{L-1} & f_L & f_{L+1} & \dots & f_{N-1}
+    \end{bmatrix}
+\end{align}
+
+The terms $X_{(i,j)} = f_{i+j-2}$. Therefore, the matrix X is the Henkel matrix
+of the time series F.  
+\subsection{SVD: Singular Value Decomposition}
+After creating the Henkel matrix, i.e. a multi dimention representation of the univariate time series, 
+SSA employes singular value decomposition in order to break down the matrix X into smaller blocks. 
+Thus decomposting the Henkel matrix $X$ as follows: 
+\begin{align}
+	X = U\Sigma V^T
+\end{align}
+where $U$ is an $L \times L$ unitary ortonormal matrix, representing the set of left singular vectors,  
+ $\Sigma$ is $LxK$ rectangular matrix cintaining the L singular values of the matrix X,
+ordered in magnitude ($\lambda_1 \geq \lambda_2 \geq \lambda_3 \geq\dots \geq \lambda_N $), and $V$ a $K \times K$
+unitary matrix containing the ortonormal set of right singular vectors of X. 
+The SVD of the singular value can be rewritten as:
+
+\begin{align}\label{eq:svd_i}
+	X = \sum_{i=0}^{d-1} \sigma_i U_i V_{i}^T = \sum_{i=0}^{d-1}X_i
+\end{align}
+
+Eq.\ref{eq:svd_i} shows how the $X_i$ is the i-th elementary block of the matrix X given by the eigentriple $(U_i, \sigma_i, V_i)$.
+Where the values of $\sigma$ determines the magnitude of the i-th contribution of the block $X_i$.
+d represents the dimensionality of the of the Henkel matrix. This formulation extend the well-know decomposition 
+framework of a time series in trend, seasonality and noise. As results of this decomposition, the initial time series
+can be seen as the sum of multiple components ordered by magnitude (trend, multiple seasonality, exogenous and noise).
+If we sum up all the d sub-blocks, the matrix is entirely reconstructed, while considering only the first r-th sub.blocks would filter the time series. 
+
+\subsection{Reconstruction}
+To extract a time series from the elementary matrices, we'll employ \textbf{diagonal averaging}, which defines the values of the reconstructed time series \( F^{(j)} \) as averages of the corresponding anti-diagonals of the matrices \( X^{(j)} \). Formally, this is represented by introducing the \textbf{Hankelisation} operator, \( \hat{H} \), that acts on the \( L \times K \) matrix \( X^{(j)} \) to give a Hankel matrix \( \hat{X}^{(j)} \), that is,
+\[
+\hat{X}^{(j)} = \hat{H}X^{(j)}
+\]
+The element \( \hat{x}_{m,n} \) in \( \hat{X} \), for \( s = m + n \), is given by
+\[
+\hat{x}_{m,n} = 
+\begin{cases} 
+\frac{1}{s+1} \sum_{l=0}^{s} x_{l,s-l} & \text{for } 0 \leq s \leq L - 1 \\
+\frac{1}{L} \sum_{l=0}^{L-1} x_{l,s-l} & \text{for } L \leq s \leq K - 1 \\
+\frac{1}{K+L-s-1} \sum_{l=s-K+1}^{L} x_{l,s-l} & \text{for } K \leq s \leq K + L - 2
+\end{cases}
+\]
+
+\subsection{Forecast using SSA }
