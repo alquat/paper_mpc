@@ -1,42 +1,15 @@
 
 \section{Introduction}
 
-\IEEEPARstart{T}{his} document is a template for authors. If you are reading a paper or PDF version of this document, please download the electronic file, TRANS-JOUR.zip, from the TIE Web site at \url{http://www.ieee-ies.org/pubs/transactions-on-industrial-electronics} so you can use it to prepare your manuscript.
+\IEEEPARstart{P}{ower} electronic converters (PECs) are ubiquitous, serving as critical interfaces in electrification by connecting loads, energy storage systems, sources, and the grid. For example, PECs are used to convert alternating current (AC) to direct current (DC) in electric vehicles (EVs), transform DC to AC in photovoltaic systems to align with grid frequency and voltage and facilitate operations in high-power applications and various industrial processes, mainly electric drives. 
+As Europe progresses in its green transition and electrification actions, 
+it becomes clear how PECs have a major role in orchestrating 
+a large network of \textit{prosumers}, i.e., flexible loads that could serve as consumers or producers based on the operational
+grids. Today, most industrial applications are still unidirectional, meaning they consume energy according to their strategy without taking grid conditions into account, primarily due to the fact that energy generation was traditionally dominated by large plants operating on a fixed schedule to meet specific demands during designated hours.
+However, in addition to the inverter-based grid, and stability challenges,
+with the energy landscape gradually shifting from centralized to decentralized and stochastic generation, it also pushes for significant technological advancements. 
 
-After unzipping, choose Word or LATEX option. Open ALL\_xx-TIE-xxxx.docx for Word or ALL\_x-TIE-xxxx.tex for LATEX (highly recommended).
 
-These types of manuscript are accepted in TIE:
-
-\section{System Description}
-
-The energy production landscape is gradually shifting from a centralized model towards 
-more decentralized systems. 
-This transformation is evident in the increased deployment and integration of 
-renewable energy sources. Single wind turbine, and rooftop PV have are moving fast towards wind and solar farm.  
- As result of this transition, an increasing numerous works focused on potential issues arising from 
-a scattered production at different level. As an example in paper 1 the authors studies the return of investment of the design
-of distributed energy resources. Other studies focuses on how a distributed scenario could benefit the industry, 
-or how policy maker could push for emerging markets for distribute resources. On the bottom level, the integration of grid-based inverters
-playing a pivotal role in designing a grid able to maintain a power quality and stability.
-In fact it is known that with the increasing amount of renewables, the grid is being more exposed to fluctation 
-and stochasticty mainly driven by the weather forecast, requiring the energy storage and ancillary service includes 
-managing voltage levels and frequency to prevent grid disturbances.
-Another part of the literature is focusing on scheduling and resource allocation under uncertainty. 
-Methods like stochastic or robust optimization are now becoming more popular in order to minimize Value at Risk (VAr), under uncertain conditions. 
-
-\subsection{Cloud Stuff }
-
-Power electronic converters (PECs) are ubiquitous and play a crucial role in renewable sources integration, serving 
-as interconnection between the loads, energy storage systems and the grid.
-Numerous are the application of power converters 
-for example in Electrical Vehicles (EVs) converting alternating current (AC) to direct current (DC) or in 
-photovoltaic panels converting DC to AC, to match the grid frequency and voltage. 
-Moreover, PECs are crucial in the operation of industrial electric drives to meet 
-motors requirements in high power application. 
-For instance, three-phase converters are commonly used in industrial settings 
-due to their ability to handle high power requirements efficiently.
-It is clear that PECs are could play a major role in orchestrating loads, 
-by leveraging their flexibility and adaptability. 
 However, the aggregation of this flexibilities come with a price,
 especially in terms of data aggregation, computational resources, scalability and advances control 
 techniques that are able to interact with cloud architecture, PLCs and APIs. (Read paper Musumeci) 
@@ -52,3 +25,100 @@ distinguishes the the transmission and distribution levels, where IoT can be app
 aggregation (V2G), from the demand side where IoT can be used for battery energy storage management and control to smart building control. 
 
 Wi-Fi, Bluetooth, ZigBee \cite{karunarathne2018wireless} LTE-4G and 5G networks \cite{li20185g}
+
+
+
+As an example in paper 1 the authors studies the return of investment of the design
+of distributed energy resources. Other studies focuses on how a distributed scenario could benefit the industry, 
+or how policy maker could push for emerging markets for distribute resources. On the bottom level, the integration of grid-based inverters
+playing a pivotal role in designing a grid able to maintain a power quality and stability.
+In fact it is known that with the increasing amount of renewables, the grid is being more exposed to fluctation 
+and stochasticty mainly driven by the weather forecast, requiring the energy storage and ancillary service includes 
+managing voltage levels and frequency to prevent grid disturbances.
+Another part of the literature is focusing on scheduling and resource allocation under uncertainty. 
+Methods like stochastic or robust optimization are now becoming more popular in order to minimize Value at Risk (VAr), under uncertain conditions. 
+
+\section{System Description}
+The cloud is a service where all the application can be executed on a virtual 
+environment owned either by privite or company. In our application, we used the 
+Internet of Things (IoT) Hub from Azure, which is a centralized platform that facilitates the 
+connections and the management of fleets of IoT devices. The IoT Hub enables a streamlined 
+bidirectional comunication from the Cloud to the physical devices, sensors.
+As reported above, nowadays most of the energy plant are equipped with SCADA 
+(Supervisory Control and Data Acquisition) \cite{daneels1999scada}, which enables data 
+real-time monitoring and control of industrial processes and infrastructure.
+It integrates hardware and 
+software components to collect data from sensors, control equipment, and provide 
+centralized oversight through Human-Machine Interfaces (HMIs). However, in comparison with SCADA, the IoT Hub has some more 7
+support in terms of scalability, as it can support thousand of sensors and embedded devices, and also provide an extra layer of 
+flexibility in terms of data collection for real-time and historical data. Moreover, it also provides different technologies for 
+data driven modelling and artificial intelligence services. 
+
+IoT sensors can be controlled singularly from the Azure Hub, but this is not our case. In our application, all the sensors are 
+aggregated using a Kunbus Revolution Pi, which is the industrial standard of Revolution Pi. 
+The Revolution Pi enables a bi-directional communication and serves as bridge between the PLC and the Cloud. 
+The communication between the Gateway and the PLC is Modbus TCP/IP, a tailored version of the protocol for network communication 
+over internet. One of the key advantage of this chain strategy is that the majority of the sensors, VDFs are connected to the 
+PLC directly, so there is not need to rebuild from scratch the communication between all the sensor and the RevPi. 
+The PLC is the Siemens s7-1200, which support Profinet, a propetary version of Profibus protocol, developed by Siemens that enable fast and reliable communication in control. 
+The PLC is the connected to the following devices: VDF1, VDF2, VDF3, Outflow sensor, level sensor, pressure sensor, 
+Addionally, from each VDF can be retrieved the instantaneous speed and power consumption. 
+
+A crucial role in this application is played by the RevPi which not only combine the collected data from the 
+PLC and the gateway and pushes the data to the cloud but also acts as real-time controller, overcoming the limitation 
+of the PLC in terms of computational capabilities. In fact, the needs more comprehensive and optimization based control techniques 
+, poses the needs of extra computational power, memory allocation and faster CPUs.
+This architecture, compared to purely cloud-based controller, provides an extra layer of security, as the the on-site control device, can able to handle different 
+situations, overcoming well-known limitations broader adoption, as delays or disruptions in communications.
+
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/test.pdf}
+    \caption{Your caption text.}
+    \label{fig:your_label}
+\end{figure*}
+
+
+\subsubsection{Data streaming and Features.}
+The resolution frequency of the data streaming is $1\si{\hertz}$, as every second one measurement is sampled, pushed and stored to a time series database 
+located in the cloud. Each sensor has a time index and values and can be queried from external APIs. 
+This architecture allows high modularity as different blocks perform different operation
+
+
+
+
+\begin{table}[!t]
+    \renewcommand{\arraystretch}{1.3}
+    \caption{Units for Magnetic Properties}
+    \centering
+    \label{table_1}
+    \resizebox{0.8\columnwidth}{!}{
+        \begin{tabular}{c c c}
+            \hline\hline \\[-3mm]
+            \multicolumn{1}{c}{Sensor} & \multicolumn{1}{c}{Unit of Measurement} & \multicolumn{1}{c}{Protocol} \\[1.6ex] \hline
+            $ \rm{Level} $  & \si{\meter} & \textit{Analog} \\
+            $ \rm{Speed} $ & \si{rpm} & \textit{Profinet} \\ 
+            $ \rm{Inflow} $ & \si{\meter^3}/\si{\hour} & \textit{Virtual} \\ 
+            $ \rm{Power} $ & \si{kW}/\si{\hour} & \textit{Profinet} \\ 
+
+            $ \rm{Pressure} $  & \si{psi} & \textit{Profinet} \\
+            $ \rm{Outflow} $ & \si{\meter^3}/\si{\hour} & \textit{Analog} \\ 
+
+            \hline\hline
+        \end{tabular}
+    }
+\end{table}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{img/block_diagram.pdf}
+    \caption{Edge-Cloud Architecture }
+    \label{fig:your_label}
+\end{figure}
+
+
+
+
+
