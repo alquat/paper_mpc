@@ -1,6 +1,7 @@
-\section{System Identification}
+\section{Proposed Methodology}
 \subsection{ARX Model}
 	We have chosen to represent the system in \textit{discrete time},
+	
 	\begin{align}
 		y_t &+ a_1 y_{t-1} + \cdots + a_n y_{t-p} = b_1 u_{t-1} + \cdots + b_q u_{t-q}
 	\end{align}
@@ -41,27 +42,8 @@
 	\end{align}
 
 
-\subsection{Piecewise Linear function}
 
-	\begin{algorithm}
-		\caption{Grouping Time Series Data by Bin Medians}
-		\begin{algorithmic}[1]
-		\REQUIRE Time series data \( y = \{y_1, y_2, \ldots, y_T\} \), excitation data \( u = \{u_1, u_2, \ldots, u_T\} \), bin size \( n \)
-		\ENSURE Grouped data by bin medians
-		
-		\STATE Divide the time series \( y \) into bins of size \( n \)
-		\FOR{$i = 1$ to $\left\lceil \frac{T}{n} \right\rceil$}
-			\STATE $B_i \gets \{ y_{(i-1)n+1}, y_{(i-1)n+2}, \ldots, y_{\min(in, T)} \}$
-			\STATE Compute the median \( m_i \) of the bin \( B_i \)
-		\ENDFOR
-		
-		\STATE Group the data in \( y \) by their corresponding bin medians \( m_i \)
-		
-		\end{algorithmic}
-		\end{algorithm}
-
-
-\section{Inflow Estimation}
+\subsection{Inflow Estimation}
 
 	The considered wastewater pumping station, only the outflow and the height are measured, 
 	while the inflow is not measured or estimated. Therefore, in order to estimate the inflow of the tank, 
@@ -100,23 +82,46 @@
 \
 
 
-\section{Inflow Forecast}
+\subsection{Inflow Forecast}
+The inflow estimation is the a first step to enhable the control of the system from a lower
+perspective. This means that the recursive estimation of the inflows allows, as it will be clarified in the next 
+steps, to maintain the equilibrium between the inflow and the incoming outflow. This estimation can be performed 
+at different time level, in order to accommodate the system. An example is that if the system is running at 
+seconds resolution, then the estimation can support the balancing equation of the height. However, after visual 
+inspection, it can be seen that the inflow is mainly driven by two large scale phenomena, i.e., the human 
+behavior and the rain. In fact, in our application the inflow peaks in the morning, registering the 
+most intensive water usage during the day. Additionally, the inflow patter follows a 24 hours seasonality with trend 
+following the alternation of meteorological seasons. However, on the top of this components largely characterized by the 
+large scale human behavior, the inflow is strongly affected by the rain. In fact, even in separate systems, the rain 
+infiltration can strongly affect the inflow and thus the normal capacity operations of pumping or treatment stations, representing the main cause of 
+overflow in most of the swage operations. Mitigation of overflow is among the challenges in modern pumping and treatment stations, but still represent 
+one of the main driver of clean water pollution. Therefore, preventing this uncontrolled scenarios plays a pivotal economical, environmental and social issue. 
+Nevertheless, building accurate inflow forecast is challenging for many reason, i.e., uncertainty in the rain forecast, mismatch between the 
+rainfall forecasted and the actual precipitation and finally the availability of the historical rain forecasts. 
+For this purpose, we build our own data collection, where the rainfall forecats are queried hourly from the Norwegian Meteorological Institute (Meteorologisk institutt), while the 
+actual precipitation is retrieved from the Danish Meteorological Institute (Danmarks Meteorologiske Institut), which provides, on a per minute basis,  measurements of 
+the precipitation occurred in the past minute. Finally, the measured rainfall is resampled hourly, and use to train the model, while the forecast 
+are used as future covariates to provide hourly forecast over an horizon of 1 day.
 
-\section{Hierarchical Model Predictive Control}
-	\subsection{Higher-Level MPC}
-		\begin{subequations}\label{P0:higher_mpc}
-			\begin{align}
-				\underset{\zeta, }{\text{min}}& \sum_{t=1}^{T} \Gamma \left\lVert E \right\rVert^{2}_{t} + \Lambda_t^T \sigma_t   \label{P0:1} \\
-				&\hspace{-1em} \text{s.t.}  \quad \quad \forall \sigma_t \geq 0 \label{P0:2} \\
-				& \qquad \zeta_{t} = \sum_{j=1}^3 \zeta_{t-1} \label{P0:3}  \\
-				& \qquad Q_{in,t} \leq 0\label{P0:4} \\
-				& \qquad h_{min}\leq h_{t} \leq h_{max}\label{P0:5}\\
-				& \qquad E_{min}\leq E_{t} \leq E_{max}\label{P0:6}
-		\end{align}
-		\end{subequations}
-	
 
-\subsection{Lower-Level MPC}
+
+
+\subsection{Hierarchical Model Predictive Control}
+	\subsubsection{Higher-Level MPC}
+
+
+\begin{subequations}\label{P0:min_max}
+	\begin{align}
+		\underset{E}{\text{min}} & \underset{Q_{in,t} \in \mathcal{U}_t}{\text{max}} \quad \sum_{t=1}^{T} \left( \Gamma \left\lVert E \right\rVert^{2}_{t} + \Lambda_t^T \sigma_t \right) \label{P0:min_max_1} \\
+		\text{s.t.} \quad & \sigma_t \geq 0, \quad \forall t \label{P0:min_max_2} \\
+		& eo_{t} = \sum_{j=1}^3 \zeta_{t-1}, \quad \forall t \label{P0:min_max_3} \\
+		& h_{min} \leq h_{t} \leq h_{max}, \quad \forall t \label{P0:min_max_5} \\
+		& E_{min} \leq E_{t} \leq E_{max}, \quad \forall t \label{P0:min_max_6} \\
+		& \hat{Q}_{in,t} = \hat{Q}_{in,t-1} \label{P0:min_max_7}
+	\end{align}
+	\end{subequations}
+
+\subsubsection{Lower-Level MPC}
 	\begin{subequations}\label{P2:FinalModel}
 		\begin{align}
 			\underset{\omega, E, P, Q_{\text{out}}}{\text{min}}& \sum_{k=1}^{h} \mathcal{Q} \left\lVert h_k - h_r \right\rVert^2 + \mathcal{R} \left\lVert \omega_k \right\rVert^2 + \Gamma \left\lVert E \right\rVert^{2}_{k} + \Lambda_k^T \sigma_k  \label{P1:lower_mpc} \\
