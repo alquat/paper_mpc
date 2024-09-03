@@ -1,0 +1,22 @@
+
+\begin{thenomenclature} 
+\nomgroup{A}
+  \item [{$\ell$}]\begingroup number of lags\nomeqref {0}\nompageref{1}
+  \item [{$\eta$}]\begingroup energy outflow curve\nomeqref {0}\nompageref{1}
+  \item [{$\hat{Q}_{in}$}]\begingroup Forecasted Inflow per hour\nomeqref {0}\nompageref{1}
+  \item [{$\Lambda_t$}]\begingroup Regularization Vector\nomeqref {0}\nompageref{1}
+  \item [{$\mathcal{U}_t$}]\begingroup uncertainty set for $Q_{in,t}$ at time $t$\nomeqref {0}\nompageref{1}
+  \item [{$\omega_j$}]\begingroup j-th Pump speed\nomeqref {0}\nompageref{1}
+  \item [{$\pi$}]\begingroup Day-ahead energy price\nomeqref {0}\nompageref{1}
+  \item [{$\sigma_t$}]\begingroup Slack variable at time $t$\nomeqref {0}\nompageref{1}
+  \item [{$E$}]\begingroup Energy Consuption\nomeqref {0}\nompageref{1}
+  \item [{$H$}]\begingroup Upper MPC horizon\nomeqref {0}\nompageref{1}
+  \item [{$h$}]\begingroup Lower MPC horizon\nomeqref {0}\nompageref{1}
+  \item [{$h$}]\begingroup Tank's height\nomeqref {0}\nompageref{1}
+  \item [{$h_{ref}$}]\begingroup Height Reference\nomeqref {0}\nompageref{1}
+  \item [{$p_{j}$}]\begingroup Pipe-line Pressure\nomeqref {0}\nompageref{1}
+  \item [{$q_{in}$}]\begingroup Estimate of the inflow per minute.\nomeqref {0}\nompageref{1}
+  \item [{$q_{out,j}$}]\begingroup Outflow of the j-th pump \nomeqref {0}\nompageref{1}
+  \item [{$Q_{out}$}]\begingroup Hourly Outflow of the Tank\nomeqref {0}\nompageref{1}
+
+\end{thenomenclature}

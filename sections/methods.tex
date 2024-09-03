@@ -102,9 +102,46 @@ For this purpose, we build our own data collection, where the rainfall forecats 
 actual precipitation is retrieved from the Danish Meteorological Institute (Danmarks Meteorologiske Institut), which provides, on a per minute basis,  measurements of 
 the precipitation occurred in the past minute. Finally, the measured rainfall is resampled hourly, and use to train the model, while the forecast 
 are used as future covariates to provide hourly forecast over an horizon of 1 day.
+Given the decomposable structure of the time series and the impulsive behavior caused by the rain, we found
+an online hybrid windowed model be the best fit for this application. The hybrid strategy can be devided into
+two different steps. The first one if time series modeling using Generalized Additing Models (GAM), where the time 
+series is modeled as follows: 
 
+\begin{equation}
+	y_t = g_t + s_t + r_t + \epsilon_t
+\end{equation}
 
+where: 
+\begin{itemize}
+	\item[-] $\boldsymbol{g_t}$ represents the trend, modeled as piecewise linear trend with changes points:  
+\end{itemize}
+\begin{equation}
+	g_t = (k+a_t^T \delta)t + (m + a_t^T\gamma)
+\end{equation}
+with k defined as the growing rate, $\delta$ the rate adjustments, m an offset parameter, and $\gamma$
+a term to ensure the continuity of the function. 
+\begin{itemize}
+	\item[-] $\boldsymbol{s_t}$ is the seasonality terms given by the N first Fourier terms, as reported in Eq.\ref{gam:seas} 
+\end{itemize}
 
+\begin{equation}
+	\label{gam:seas}
+	s_t = \sum_{n=1}^{N} \Bigg (a_n cos \Bigg(\frac{2\pi nt}{P}\Bigg) + b_n sin \Bigg(\frac{2\pi nt}{P}\Bigg)\Bigg)
+\end{equation}
+
+\begin{itemize}
+	\item[-] whereas, $\boldsymbol{r_t}$ is the external covariates representing the rain forecasted for the next 24 hours. 
+\end{itemize}
+
+Once fitted the model, assuming the residuals are almost normally distributed and thta the time 
+series is stationary, we model the residuals of the \( \epsilon_{t, GAM} \) of a time series \( Q_{in,t} \), using an ARIMA(\(p, d, q\)) model:
+
+\begin{equation}
+	\Phi(B)(1 - B)^d \epsilon_{, GAM} = \Theta(B) \nu_t
+\end{equation}
+
+to fit these model we used the Pophet model developed by facebook using a recursive fitting widown 
+and a simple arima for the remaning autocorrelation of the residuals. 
 
 \subsection{Hierarchical Model Predictive Control}
 	\subsubsection{Higher-Level MPC}
@@ -112,27 +149,58 @@ are used as future covariates to provide hourly forecast over an horizon of 1 da
 
 \begin{subequations}\label{P0:min_max}
 	\begin{align}
-		\underset{E}{\text{min}} & \underset{Q_{in,t} \in \mathcal{U}_t}{\text{max}} \quad \sum_{t=1}^{T} \left( \Gamma \left\lVert E \right\rVert^{2}_{t} + \Lambda_t^T \sigma_t \right) \label{P0:min_max_1} \\
-		\text{s.t.} \quad & \sigma_t \geq 0, \quad \forall t \label{P0:min_max_2} \\
-		& eo_{t} = \sum_{j=1}^3 \zeta_{t-1}, \quad \forall t \label{P0:min_max_3} \\
-		& h_{min} \leq h_{t} \leq h_{max}, \quad \forall t \label{P0:min_max_5} \\
+		\underset{\eta}{\text{min}} & \underset{Q_{in,t} \in \mathcal{U}_t}{\text{max}} \quad \sum_{t=1}^{T} \left( \eta_t \mathcal{C}_t + \Lambda_t^T \sigma_t \right) \label{P0:min_max_1} \\
+		\text{s.t.} \quad & \sigma_t \geq 0, \ell \geq 0  \quad \forall t \in T \label{P0:min_max_2} \\
+		& \eta_{t} = \sum_{j=1}^3 \eta_{j,t-1}, \quad \forall t \label{P0:min_max_3} \\
+		& h_{min} \leq h_{ref, t} \leq h_{max}, \quad \forall t \label{P0:min_max_5} \\
 		& E_{min} \leq E_{t} \leq E_{max}, \quad \forall t \label{P0:min_max_6} \\
-		& \hat{Q}_{in,t} = \hat{Q}_{in,t-1} \label{P0:min_max_7}
+		& \hat{Q}_{in,t} = \hat{Q}_{in,t-n} \label{P0:min_max_7}
 	\end{align}
 	\end{subequations}
 
 \subsubsection{Lower-Level MPC}
 	\begin{subequations}\label{P2:FinalModel}
 		\begin{align}
-			\underset{\omega, E, P, Q_{\text{out}}}{\text{min}}& \sum_{k=1}^{h} \mathcal{Q} \left\lVert h_k - h_r \right\rVert^2 + \mathcal{R} \left\lVert \omega_k \right\rVert^2 + \Gamma \left\lVert E \right\rVert^{2}_{k} + \Lambda_k^T \sigma_k  \label{P1:lower_mpc} \\
-			&\hspace{-1em} \text{s.t.}  \quad \quad \forall \sigma_k \geq 0, \; l \geq 0 \label{P1:1} \\
+			\underset{\omega, E, P, Q_{\text{out}}}{\text{min}}& \sum_{k=1}^{h} \mathcal{Q} \left\lVert h_k - h_{ref} \right\rVert^2 + \mathcal{R} \left\lVert \omega_k \right\rVert^2 + \Gamma \left\lVert E \right\rVert^{2}_{k} + \Lambda_k^T \sigma_k  \label{P1:lower_mpc} \\
+			&\hspace{-1em} \text{s.t.}  \quad \quad \forall \sigma_k \geq 0, \; \ell \geq 0 \quad \forall k \in h \label{P1:1} \\
 			& \qquad Q_{\text{out}, k} = \sum_{j=1}^3 Q_{out_{j,k-1}} \label{P1:2} \\
-			& \qquad E_{k} = \sum_{j=1}^3 E_{k-l} \label{P1:3}  \\
-			& \qquad P_{k} = \sum_{j=1}^3 P_{k-l} \label{P1:4}  \\
+			& \qquad E_{k} = \sum_{j=1}^3 E_{k-\ell} \label{P1:3}  \\
+			& \qquad P_{k} = \sum_{j=1}^3 P_{k-\ell} \label{P1:4}  \\
 			& \qquad Q_{in,k} = \tilde{Q}_{in,k-1} \label{P1:5}  \\
 			& \qquad h_k = \frac{1}{A} \Big(\tilde{Q}_{in,k} - Q_{out,k}\Big) \label{P1:6} \\
-			& \qquad \omega_{l} - \sigma_{\omega} \leq \omega_k \leq \omega_{u} + \sigma_{\omega} \label{P1:7} \\
-			& \qquad P_{l} - \sigma_{P} \leq P_k \leq P_{u} + \sigma_{P} \label{P1:8} \\
-			& \qquad h_{r} - \sigma_{h_{r}} \leq h_k \leq h_{l} + \sigma_{h_{r}} \label{P1:9}
+			& \qquad P_{min} - \sigma_{P,t} \leq P_k \leq P_{max} + \sigma_{P,t} \label{P1:8} \\
+			& \qquad \omega_{min} - \sigma_{\omega,t} \leq \omega_k \leq \omega_{max} + \sigma_{\omega,t} \label{P1:7} \\
+			& \qquad h_{ref} - \sigma_{h,t} \leq h_k \leq h_{ref} + \sigma_{h,t} \label{P1:9}
 	\end{align}
 	\end{subequations}
+
+
+
+\RestyleAlgo{ruled}
+\SetKw{KwSet}{Set}
+\begin{algorithm}
+	\KwSet $h \leftarrow$ lower-MPC horizon\\
+	\KwSet $H \leftarrow$ upper-MPC horizon\\
+	\KwSet $t \leftarrow 0$ \\
+	\caption{Hierarchical MPC of aggregation of power converters.}\label{alg:two}
+	\While(){control = True}{
+		$t \leftarrow t+1$ \\
+		$k \leftarrow k+1$ \\
+		$\hat{q}_{out,k}\leftarrow$  measure outflow state \\
+		$\hat{h}_{k}\leftarrow$  measure height state \\
+		$\hat{q}_{in, k|k} \leftarrow$ estimate inflow state \\
+		
+		\If{$k \bmod H = 0$}{
+			$r_{t+H} \leftarrow$ update rain forecast from API \\
+			$\pi_{t+H} \leftarrow$ update price forecast from API \\
+			$\tilde{Q}_{in, t+H|k} \leftarrow$ forecast inflow state\\
+			$h_{ref} \leftarrow$ \textbf{solve upper-OCP (scheduling)}
+			}
+		%update inflow forecast 
+	
+	$\{\omega_{k}\}_{j \in {1,2,3}}$ \textbf{solve lower-OCP (drives control)} \\ 
+	apply $\{\omega_{k}\}_{j \in {1,2,3}}$ to the system
+	}
+	
+
+\end{algorithm}

@@ -19,9 +19,13 @@
 \usepackage{breakurl}
 \usepackage{epstopdf}
 \usepackage{pbox}
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage{svg}
+\usepackage{float}
+\usepackage{algorithm2e}
+\usepackage{nomencl}
+
+\makenomenclature
+\SetKwComment{Comment}{/* }{ */}
+
 \begin{document}
 \title{	Preparation of Papers for IEEE}
 
@@ -44,8 +48,9 @@
 }
 
 \maketitle
-	
+
 \input{sections/abstract}
+\input{sections/nomenclature}
 \input{sections/introduction}
 \input{sections/system_description}
 \input{sections/methods}
